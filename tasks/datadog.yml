@@ -1,0 +1,65 @@
+---
+- name: Install datadog-agent
+  shell: DD_AGENT_MAJOR_VERSION=7 DD_API_KEY="{{ dd_api_key }}" DD_SITE="datadoghq.com" bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script.sh)"
+
+- name: Copy environment
+  template:
+    src: environment.j2
+    dest: /etc/environment
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Delete process.d/conf.yaml.example
+  file:
+    path: /etc/datadog-agent/conf.d/process.d/conf.yaml.example
+    state: absent
+
+- name: Copy process.d/conf.yaml
+  template:
+    src: "conf.process.{{ node_type }}.yaml.j2"
+    dest: /etc/datadog-agent/conf.d/process.d/conf.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Delete docker.d/conf.yaml.default
+  file:
+    path: /etc/datadog-agent/conf.d/docker.d/conf.yaml.default
+    state: absent
+
+- name: Docker
+  block:
+    - name: Copy docker.d/conf.yaml
+      copy:
+        src: "{{ role_path }}/files/conf.docker.yaml"
+        dest: /etc/datadog-agent/conf.d/docker.d/conf.yaml
+
+    - name: Add the dd-agent user to the docker group
+      user:
+        name: dd-agent
+        groups: docker
+        append: yes
+
+  when: (node_type == "swarm_master") or (node_type == "swarm_worker") or (node_type == "swarm_snapshot") or (node_type == "seed")
+
+- name: Copy nginx.d/conf.yaml
+  copy:
+    src: "{{ role_path }}/files/conf.nginx.yaml"
+    dest: /etc/datadog-agent/conf.d/nginx.d/conf.yaml
+  when: (node_type == "rpc") or (node_type == "swarm_worker")
+
+- name: Restart datadog-agent
+  command: echo "restart datadog-agent"
+  notify: "restart datadog-agent"
+
+- name: Cosmos monitoring
+  block:
+  - name: Checkout the datadog-cosmos-monitoring repository
+    git:
+      repo: https://github.com/Pupmos/datadog
+      dest: /usr/src/datadog
+
+  - include: cron/cosmos.yml
+
+  when: (node_type == "validator") or (node_type == "rpc") or (node_type == "backup")

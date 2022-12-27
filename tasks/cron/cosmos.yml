@@ -1,0 +1,15 @@
+---
+- name: Cosmos cron jobs
+  block:
+    - name: block-latency cron job
+      cron:
+        name: block-latency
+        minute: '*/1'
+        job: 'DD_API_KEY="$DD_API_KEY" RPC_STATUS_URL="http://localhost:26657/status" make -C /usr/src/datadog block-latency'
+
+    - name: peers cron job
+      cron:
+        name: peers
+        minute: '*/1'
+        job: 'DD_API_KEY="$DD_API_KEY" RPC_NET_INFO_URL="http://localhost:26657/net_info" make -C /usr/src/datadog peers'
+  when: (node_type == "validator" or node_type == "rpc")
