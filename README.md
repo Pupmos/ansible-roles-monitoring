@@ -1,6 +1,6 @@
 # Pupmos/anisble-roles-monitoring
 
-An ansible role for monitoring.
+An Ansible role for monitoring.
 
 ## Usage
 
