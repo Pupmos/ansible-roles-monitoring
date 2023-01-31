@@ -2,6 +2,14 @@
 - name: Install datadog-agent
   shell: DD_AGENT_MAJOR_VERSION=7 DD_API_KEY="{{ dd_api_key }}" DD_SITE="datadoghq.com" bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script.sh)"
 
+- name: Copy datadog.yaml
+  template:
+    src: datadog.yaml.j2
+    dest: /etc/datadog-agent/datadog.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Copy environment
   template:
     src: environment.j2
