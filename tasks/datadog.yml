@@ -18,6 +18,14 @@
     group: root
     mode: "0644"
 
+- name: Copy datadog.yml
+  template:
+    src: datadog.yml.j2
+    dest: /etc/datadog/datadog.yml
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Delete process.d/conf.yaml.example
   file:
     path: /etc/datadog-agent/conf.d/process.d/conf.yaml.example
