@@ -68,6 +68,6 @@
       repo: https://github.com/Pupmos/datadog
       dest: /usr/src/datadog
 
-  - include: cron/cosmos.yml
+  - include_tasks: cron/cosmos.yml
 
   when: (node_type == "validator") or (node_type == "rpc") or (node_type == "backup")
